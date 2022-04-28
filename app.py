@@ -33,7 +33,7 @@ def add_breakpoint():
     return {"code": 200, "msg": "success"}
 
 
-@app.route("breakpoint", methods=["DELETE"])
+@app.route("/breakpoint", methods=["DELETE"])
 def delete_breakpoint():
     # 根据断点编号删除断点
     number = request.args.get("number")
