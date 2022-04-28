@@ -33,6 +33,18 @@ def add_breakpoint():
     return {"code": 200, "msg": "success"}
 
 
+@app.route("breakpoint", methods=["DELETE"])
+def delete_breakpoint():
+    # 根据断点编号删除断点
+    number = request.args.get("number")
+    try:
+        gdb.execute("d %s" % number)
+    except Exception as e:
+        print(e)
+        return {"code": 3, "msg": "删除断点失败"}
+    return {"code": 200, "msg": "success"}
+
+
 @app.route('/breakpoints')
 def get_breakpoints():
     bps = []
@@ -44,6 +56,7 @@ def get_breakpoints():
         _breakpoint_json["expression"] = _breakpoint.expression
         _breakpoint_json["condition"] = _breakpoint.condition
         _breakpoint_json["thread"] = _breakpoint.thread
+
         if isinstance(_breakpoint.location, str) and (_breakpoint.location.__len__() > 1) and (
                 _breakpoint.location[0] == "*"):
             try:
@@ -52,6 +65,7 @@ def get_breakpoints():
                 pass
         bps.append(_breakpoint_json)
     return {"code": 200, "msg": "success", "data": {"breakpoints": bps}}
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0")
