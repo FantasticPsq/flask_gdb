@@ -11,6 +11,8 @@ file_path = os.path.dirname(__file__)
 
 @app.route('/upload/file', methods=["POST"])
 def upload_file():  # put application's code here
+    global file_path
+    print(file_path)
     file = request.files.get("file")
     if file is None:
         return {"code": 1, "msg": "no file"}
