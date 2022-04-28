@@ -3,19 +3,19 @@ import json
 import os.path
 
 from flask import Flask, request
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 gdb = importlib.import_module("gdb")
-file_path = os.path.dirname(__file__)
+bash_path = os.path.dirname(__file__)
 
 
 @app.route('/upload/file', methods=["POST"])
 def upload_file():  # put application's code here
-    global file_path
-    print(file_path)
     file = request.files.get("file")
     if file is None:
         return {"code": 1, "msg": "no file"}
+    file_path = os.path.join(bash_path,secure_filename(file.filename))
     file.save(file_path)
     os.system("gcc -g %s -o a.out" % file.filename)
     return {"code": 200, "msg": "success"}
