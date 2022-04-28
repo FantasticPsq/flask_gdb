@@ -40,9 +40,19 @@ def delete_breakpoint():
     try:
         gdb.execute("d %s" % number)
     except Exception as e:
-        print(e)
-        return {"code": 3, "msg": "删除断点失败"}
+        return {"code": 3, "msg": e.__str__()}
     return {"code": 200, "msg": "success"}
+
+
+@app.route("/breakpoints/info")
+def get_breakpoint_info():
+    target_breakpoints = request.args.get("target")
+    if target_breakpoints is not None:
+        cmd = "i breakpoints %s" % target_breakpoints
+    else:
+        cmd = "i breakpoints"
+    breakpoints = gdb.execute(cmd)
+    return {"code": 200, "msg": "success", "data": {"breakpoints": breakpoints}}
 
 
 @app.route('/breakpoints')
