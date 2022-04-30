@@ -5,6 +5,8 @@ import os.path
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 
+from result import Result
+
 app = Flask(__name__)
 gdb = importlib.import_module("gdb")
 bash_path = os.path.dirname(__file__)
@@ -37,6 +39,7 @@ def add_breakpoint():
 def delete_breakpoint():
     # 根据断点编号删除断点
     number = request.args.get("number")
+
     try:
         gdb.execute("d %s" % number)
     except Exception as e:
@@ -75,6 +78,47 @@ def get_breakpoints():
                 pass
         bps.append(_breakpoint_json)
     return {"code": 200, "msg": "success", "data": {"breakpoints": bps}}
+
+
+@app.route("/debug/run")
+def run_debug():
+    try:
+        gdb.execute("r")
+    except gdb.error as e:
+        print(e)
+        return {"code": 4, "msg": "运行失败"}
+
+    return {"code": 200, "msg": "success"}
+
+
+@app.route("/debug/continue")
+def debug_continue():
+    try:
+        gdb.execute("c")
+    except gdb.error as e:
+        print(e)
+        return {"code": 5, "msg": "continue失败"}
+    return {"code": 200, "msg": "success"}
+
+
+@app.route("/debug/next")
+def debug_next():
+    try:
+        gdb.execute("n")
+    except gdb.error as e:
+        print(e)
+        return {"code": 6, "msg": "next失败"}
+    return {"code": 200, "msg": "success"}
+
+
+@app.route("/debug/step")
+def debug_step():
+    try:
+        gdb.execute("s")
+    except gdb.error as e:
+        print(e)
+        return {"code": 7, "msg": "step失败"}
+    return {"code": 200, "msg": "success"}
 
 
 if __name__ == '__main__':
