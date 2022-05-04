@@ -3,8 +3,8 @@ import json
 import os.path
 
 from flask import Flask, request
+from gdbfrontend.api.debug import Variable
 from werkzeug.utils import secure_filename
-from utils import get_variable_by_expression
 
 app = Flask(__name__)
 gdb = importlib.import_module("gdb")
@@ -143,6 +143,24 @@ def get_variables():
                     print(e)
     data['variables'] = variables
     return {"code": 200, "msg": "success", "data": data}
+
+
+def get_variable_by_expression(expression):
+    try:
+        value = gdb.parse_and_eval(expression)
+        variable = Variable(
+            frame=gdb.selected_frame(),
+            symbol=False,
+            value=value,
+            expression=expression
+        )
+    except gdb.error as e:
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
+    return variable
 
 
 if __name__ == '__main__':
