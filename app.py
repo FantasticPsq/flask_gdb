@@ -4,8 +4,7 @@ import os.path
 
 from flask import Flask, request
 from werkzeug.utils import secure_filename
-
-from result import Result
+from utils import get_variable_by_expression
 
 app = Flask(__name__)
 gdb = importlib.import_module("gdb")
@@ -119,6 +118,31 @@ def debug_step():
         print(e)
         return {"code": 7, "msg": "step失败"}
     return {"code": 200, "msg": "success"}
+
+
+@app.route("/debug/variables")
+def get_variables():
+    data = {}
+    frame = gdb.selected_frame()
+    variables = []
+    try:
+        block = frame.block()
+    except RuntimeError:
+        block = False
+    while block:
+        for symbol in block:
+            if (symbol.is_argument or symbol.is_variable) and (symbol.name not in variables):
+                try:
+                    value = symbol.value(frame)
+                except Exception as e:
+                    print(e)
+                try:
+                    variable = get_variable_by_expression(symbol.name).serializable()
+                    variables.append(variable)
+                except Exception as e:
+                    print(e)
+    data['variables'] = variables
+    return {"code": 200, "msg": "success", "data": data}
 
 
 if __name__ == '__main__':
