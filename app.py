@@ -161,7 +161,7 @@ def get_variable_by_expression(expression):
     return variable
 
 
-class Variable(gdb.Variable):
+class Variable():
 
     def __int__(self, frame, symbol=False, value=False, expression=False):
         self.frame = frame
