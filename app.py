@@ -1,10 +1,10 @@
 import importlib
-import json
 import os.path
 
 from flask import Flask, request
-from gdbfrontend.api.debug import Variable
 from werkzeug.utils import secure_filename
+
+from Variable import Variable
 
 app = Flask(__name__)
 gdb = importlib.import_module("gdb")
