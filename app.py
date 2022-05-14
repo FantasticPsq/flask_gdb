@@ -160,7 +160,7 @@ def get_variables():
     return {"code": 200, "msg": "success", "data": data}
 
 
-@app.rouge("/debug/vars")
+@app.route("/debug/vars")
 def get_vars():
     vars = []
     varArr = gdb.execute("i locals").splitlines()
