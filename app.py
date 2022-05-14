@@ -139,12 +139,14 @@ def get_variables():
             except Exception as e:
                 print(e)
             try:
-                print("name" + symbol.name)
-                v = get_variable_by_expression(symbol.name)
-                if v:
-                    variable = v.serializable()
-                else:
-                    variable = None
+                value = gdb.parse_and_eval(symbol.name)
+                print(value)
+                variable = Variable(
+                    frame=gdb.selected_frame(),
+                    symbol=False,
+                    value=value,
+                    expression=symbol.name
+                )
                 variables.append(variable)
             except Exception as e:
                 print(e)
