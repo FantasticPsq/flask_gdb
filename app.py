@@ -168,7 +168,7 @@ def get_vars():
     for var in varArr:
         data["name"] = var.split("=")[0]
         data["value"] = var.split("=")[1]
-        var.append(data)
+        vars.append(data)
     return {"code": 200, "msg": "success", "data": vars}
 
 
