@@ -177,6 +177,7 @@ def get_stack_trace():
     recursion_num = 0
     # 当前栈帧
     frame = gdb.selected_frame()
+
     def _back(frame):
         nonlocal recursion_num
         if recursion_num > 100:
@@ -187,8 +188,26 @@ def get_stack_trace():
         if parent is not None:
             trace.append(parent)
             _back(parent)
+
     trace.append(frame)
     _back(frame)
+    backtrace_json = []
+    for _stack_frame in trace:
+        _name = _stack_frame.name()
+        _function = _stack_frame.function()
+
+        _stack_frame_json = {}
+        _stack_frame_json["pc"] = frame.pc()
+        _stack_frame_json["function"] = _name
+        _stack_frame_json["file"] = {}
+        if _function is not None:
+            _stack_frame_json["line"] = _stack_frame.find_sal().line
+            _stack_frame_json["file"]["name"] = _function.symtab.filename
+            _stack_frame_json["file"]["path"] = _function.symtab.fullname()
+        else:
+            _stack_frame_json["file"] = False
+
+        backtrace_json.append(_stack_frame_json)
     return {"code": 200, "msg": "success", "data": {"trace": trace}}
 
 
