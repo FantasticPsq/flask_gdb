@@ -160,6 +160,18 @@ def get_variables():
     return {"code": 200, "msg": "success", "data": data}
 
 
+@app.rouge("/debug/vars")
+def get_vars():
+    vars = []
+    varArr = gdb.execute("i locals").splitlines()
+    data = {}
+    for var in varArr:
+        data["name"] = var.split("=")[0]
+        data["value"] = var.split("=")[1]
+        var.append(data)
+    return {"code": 200, "msg": "success", "data": vars}
+
+
 @app.route("/debug/registers")
 def get_registers():
     data = {}
@@ -167,10 +179,10 @@ def get_registers():
         thread = gdb.selected_thread()
     except Exception as e:
         return {"code": 200, "msg": "success", "data": {}}
-    if(not thread) or gdb.selected_thread().is_running():
+    if (not thread) or gdb.selected_thread().is_running():
         return {"code": 200, "msg": "success", "data": {}}
     try:
-        lines = gdb.execute("i registers",to_string=True).splitlines()
+        lines = gdb.execute("i registers", to_string=True).splitlines()
         print(lines)
     except gdb.error:
         return {"code": 200, "msg": "success", "data": {}}
