@@ -1,10 +1,13 @@
 import importlib
 import os.path
 
+
 from flask import Flask, request
 from werkzeug.utils import secure_filename
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app=app)
 gdb = importlib.import_module("gdb")
 bash_path = os.path.dirname(__file__)
 
@@ -20,7 +23,7 @@ def upload_file():  # put application's code here
     return {"code": 200, "msg": "success"}
 
 
-@app.route('/breakpoint/add', methods=["POST"])
+@app.route('/breakpoint', methods=["POST"])
 def add_breakpoint():
     line = int(request.args.get("line"))
     try:
@@ -77,7 +80,7 @@ def get_breakpoints():
     return {"code": 200, "msg": "success", "data": {"breakpoints": bps}}
 
 
-@app.route("/debug/run")
+@app.route("/debug/run",methods=["POST"])
 def run_debug():
     try:
         gdb.execute("r")
@@ -88,7 +91,7 @@ def run_debug():
     return {"code": 200, "msg": "success"}
 
 
-@app.route("/debug/continue")
+@app.route("/debug/continue",methods=["POST"])
 def debug_continue():
     try:
         gdb.execute("c")
@@ -98,7 +101,7 @@ def debug_continue():
     return {"code": 200, "msg": "success"}
 
 
-@app.route("/debug/next")
+@app.route("/debug/next",methods=["POST"])
 def debug_next():
     try:
         gdb.execute("n")
@@ -108,7 +111,7 @@ def debug_next():
     return {"code": 200, "msg": "success"}
 
 
-@app.route("/debug/step")
+@app.route("/debug/step",methods=["POST"])
 def debug_step():
     try:
         gdb.execute("s")
@@ -128,6 +131,8 @@ def get_variables():
     except RuntimeError:
         block = False
     while block:
+        print("block: ")
+        print(block)
         for symbol in block:
             if (symbol.is_argument or symbol.is_variable) and (symbol.name not in variables):
                 try:
@@ -135,7 +140,12 @@ def get_variables():
                 except Exception as e:
                     print(e)
                 try:
-                    variable = get_variable_by_expression(symbol.name).serializable()
+                    print("name"+symbol.name)
+                    v = get_variable_by_expression(symbol.name)
+                    if v:
+                        variable = v.serializable()
+                    else:
+                        variable = None
                     variables.append(variable)
                 except Exception as e:
                     print(e)
@@ -161,7 +171,7 @@ def get_variable_by_expression(expression):
     return variable
 
 
-class Variable():
+class Variable:
 
     def __int__(self, frame, symbol=False, value=False, expression=False):
         self.frame = frame
@@ -187,6 +197,7 @@ class Variable():
         except RuntimeError as e:
             print(e)
             return False
+
         serializable = {}
         serializable["is_global"] = block.is_global
         serializable["name"] = self.name
@@ -222,6 +233,7 @@ class Variable():
 
             return None
         return serializable
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0")
