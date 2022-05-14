@@ -1,5 +1,6 @@
 import importlib
 import os.path
+import re
 
 from flask import Flask, request
 from werkzeug.utils import secure_filename
@@ -123,34 +124,69 @@ def debug_step():
 @app.route("/debug/variables")
 def get_variables():
     data = {}
+    # 获取当前栈帧
     frame = gdb.selected_frame()
     variables = []
     try:
+        # 获取当前域
         block = frame.block()
     except RuntimeError:
         block = False
 
     if not block:
         return {"msg": "error"}
+    # 遍历当前域中的表达式
     for symbol in block:
+        # 寻找所有变量和参数
         if (symbol.is_argument or symbol.is_variable) and (symbol.name not in variables):
             try:
                 value = symbol.value(frame)
             except Exception as e:
                 print(e)
             try:
+                # 将变量解析为gdb.Value,Value中包含了对象的值
                 value = gdb.parse_and_eval(symbol.name)
-                print(value)
                 variable = Variable(
                     frame=gdb.selected_frame(),
                     symbol=False,
                     value=value,
                     expression=symbol.name
                 )
-                variables.append(variable)
+                # 将variable序列化成JSON格式
+                variables.append(variable.serializable())
             except Exception as e:
                 print(e)
     data['variables'] = variables
+    return {"code": 200, "msg": "success", "data": data}
+
+
+@app.route("/debug/registers")
+def get_registers():
+    data = {}
+    try:
+        thread = gdb.selected_thread()
+    except Exception as e:
+        return {"code": 200, "msg": "success", "data": {}}
+    if(not thread) or gdb.selected_thread().is_running():
+        return {"code": 200, "msg": "success", "data": {}}
+    try:
+        lines = gdb.execute("i registers",to_string=True).splitlines()
+        print(lines)
+    except gdb.error:
+        return {"code": 200, "msg": "success", "data": {}}
+    for line in lines:
+        print(line)
+        vals = re.findall("(.+?)\\s+(.+?)\\s+(.+)", line, flags=re.IGNORECASE)
+
+        if len(vals) < 1: continue
+        if len(vals[0]) < 3: continue
+
+        vals = vals[0]
+
+        data[vals[0]] = (
+            vals[1],
+            vals[2]
+        )
     return {"code": 200, "msg": "success", "data": data}
 
 
