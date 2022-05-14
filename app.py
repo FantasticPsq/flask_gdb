@@ -155,6 +155,7 @@ def get_variables():
 def get_variable_by_expression(expression):
     try:
         value = gdb.parse_and_eval(expression)
+        print(value)
         variable = Variable(
             frame=gdb.selected_frame(),
             symbol=False,
@@ -172,7 +173,7 @@ def get_variable_by_expression(expression):
 
 class Variable:
 
-    def __int__(self, frame, symbol=False, value=False, expression=False):
+    def __init__(self, frame, symbol=False, value=False, expression=False):
         self.frame = frame
         self.symbol = symbol
         self.value = value
