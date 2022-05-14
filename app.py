@@ -163,27 +163,30 @@ def get_variables():
 @app.route("/debug/vars")
 def get_vars():
     vars = []
-    varArr = gdb.execute("i locals",to_string=True).splitlines()
+    varArr = gdb.execute("i locals", to_string=True).splitlines()
+    print(varArr)
     data = {}
     for var in varArr:
-        data["name"] = var.split("=")[0]
-        data["value"] = var.split("=")[1]
+        data["name"] = var.split(" = ")[0]
+        data["value"] = var.split(" = ")[1]
         vars.append(data)
     return {"code": 200, "msg": "success", "data": vars}
+
+
+@app.route("/debug/watches")
+def get_watches():
+    expression = request.args.get("expression")
+    if not expression:
+        return {"code": 1001, "msg": "参数错误"}
+    value = gdb.parse_and_eval(expression)
+    return {"code": 200, "msg": "success", "data": {"value": value.lazy_string().value().string()}}
 
 
 @app.route("/debug/registers")
 def get_registers():
     data = {}
     try:
-        thread = gdb.selected_thread()
-    except Exception as e:
-        return {"code": 200, "msg": "success", "data": {}}
-    if (not thread) or gdb.selected_thread().is_running():
-        return {"code": 200, "msg": "success", "data": {}}
-    try:
         lines = gdb.execute("i registers", to_string=True).splitlines()
-        print(lines)
     except gdb.error:
         return {"code": 200, "msg": "success", "data": {}}
     for line in lines:
@@ -192,9 +195,7 @@ def get_registers():
 
         if len(vals) < 1: continue
         if len(vals[0]) < 3: continue
-
         vals = vals[0]
-
         data[vals[0]] = (
             vals[1],
             vals[2]
