@@ -208,7 +208,7 @@ def get_stack_trace():
             _stack_frame_json["file"] = False
 
         backtrace_json.append(_stack_frame_json)
-    return {"code": 200, "msg": "success", "data": {"trace": trace}}
+    return {"code": 200, "msg": "success", "data": {"trace": backtrace_json}}
 
 
 @app.route("/debug/watches")
