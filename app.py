@@ -1,7 +1,6 @@
 import importlib
 import os.path
 
-
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
@@ -80,7 +79,7 @@ def get_breakpoints():
     return {"code": 200, "msg": "success", "data": {"breakpoints": bps}}
 
 
-@app.route("/debug/run",methods=["POST"])
+@app.route("/debug/run", methods=["POST"])
 def run_debug():
     try:
         gdb.execute("r")
@@ -91,7 +90,7 @@ def run_debug():
     return {"code": 200, "msg": "success"}
 
 
-@app.route("/debug/continue",methods=["POST"])
+@app.route("/debug/continue", methods=["POST"])
 def debug_continue():
     try:
         gdb.execute("c")
@@ -101,7 +100,7 @@ def debug_continue():
     return {"code": 200, "msg": "success"}
 
 
-@app.route("/debug/next",methods=["POST"])
+@app.route("/debug/next", methods=["POST"])
 def debug_next():
     try:
         gdb.execute("n")
@@ -111,7 +110,7 @@ def debug_next():
     return {"code": 200, "msg": "success"}
 
 
-@app.route("/debug/step",methods=["POST"])
+@app.route("/debug/step", methods=["POST"])
 def debug_step():
     try:
         gdb.execute("s")
@@ -130,25 +129,25 @@ def get_variables():
         block = frame.block()
     except RuntimeError:
         block = False
-    while block:
-        print("block: ")
-        print(block)
-        for symbol in block:
-            if (symbol.is_argument or symbol.is_variable) and (symbol.name not in variables):
-                try:
-                    value = symbol.value(frame)
-                except Exception as e:
-                    print(e)
-                try:
-                    print("name"+symbol.name)
-                    v = get_variable_by_expression(symbol.name)
-                    if v:
-                        variable = v.serializable()
-                    else:
-                        variable = None
-                    variables.append(variable)
-                except Exception as e:
-                    print(e)
+
+    if not block:
+        return {"msg": "error"}
+    for symbol in block:
+        if (symbol.is_argument or symbol.is_variable) and (symbol.name not in variables):
+            try:
+                value = symbol.value(frame)
+            except Exception as e:
+                print(e)
+            try:
+                print("name" + symbol.name)
+                v = get_variable_by_expression(symbol.name)
+                if v:
+                    variable = v.serializable()
+                else:
+                    variable = None
+                variables.append(variable)
+            except Exception as e:
+                print(e)
     data['variables'] = variables
     return {"code": 200, "msg": "success", "data": data}
 
