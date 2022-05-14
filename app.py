@@ -165,12 +165,31 @@ def get_vars():
     vars = []
     varArr = gdb.execute("i locals", to_string=True).splitlines()
     print(varArr)
-    data = {}
     for var in varArr:
-        data["name"] = var.split(" = ")[0]
-        data["value"] = var.split(" = ")[1]
+        data = {"name": var.split(" = ")[0], "value": var.split(" = ")[1]}
         vars.append(data)
     return {"code": 200, "msg": "success", "data": vars}
+
+
+@app.route("/debug/stack/trace")
+def get_stack_trace():
+    trace = []
+    recursion_num = 0
+    # 当前栈帧
+    frame = gdb.selected_frame()
+    def _back(frame):
+        nonlocal recursion_num
+        if recursion_num > 100:
+            return
+        recursion_num += 1
+        parent = frame.older()
+        # 递归寻找parent frame
+        if parent is not None:
+            trace.append(parent)
+            _back(parent)
+    trace.append(frame)
+    _back(frame)
+    return {"code": 200, "msg": "success", "data": {"trace": trace}}
 
 
 @app.route("/debug/watches")
@@ -178,7 +197,7 @@ def get_watches():
     expression = request.args.get("expression")
     if not expression:
         return {"code": 1001, "msg": "参数错误"}
-    value = get_variable_by_expression(expression)
+    value = gdb.parse_and_eval(expression)
     return {"code": 200, "msg": "success", "data": {"value": value}}
 
 
