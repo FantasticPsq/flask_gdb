@@ -163,7 +163,7 @@ def get_variables():
 @app.route("/debug/vars")
 def get_vars():
     vars = []
-    varArr = gdb.execute("i locals").splitlines()
+    varArr = gdb.execute("i locals",to_string=True).splitlines()
     data = {}
     for var in varArr:
         data["name"] = var.split("=")[0]
