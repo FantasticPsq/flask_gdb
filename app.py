@@ -178,8 +178,8 @@ def get_watches():
     expression = request.args.get("expression")
     if not expression:
         return {"code": 1001, "msg": "参数错误"}
-    value = gdb.parse_and_eval(expression)
-    return {"code": 200, "msg": "success", "data": {"value": value.lazy_string().value().string()}}
+    value = get_variable_by_expression(expression)
+    return {"code": 200, "msg": "success", "data": {"value": value}}
 
 
 @app.route("/debug/registers")
