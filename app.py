@@ -96,8 +96,8 @@ def debug_continue():
     try:
         gdb.execute("c")
     except gdb.error as e:
-        print(e)
-        return {"code": 5, "msg": "continue失败"}
+        # 如果当前断点之后没有断点了，程序运行结束
+        return {"code":200,"msg":"程序运行结束"}
     return {"code": 200, "msg": "success"}
 
 
@@ -191,11 +191,11 @@ def get_stack_trace():
 
     trace.append(frame)
     _back(frame)
+    # frame是不能直接序列化的
     backtrace_json = []
     for _stack_frame in trace:
         _name = _stack_frame.name()
         _function = _stack_frame.function()
-
         _stack_frame_json = {}
         _stack_frame_json["pc"] = frame.pc()
         _stack_frame_json["function"] = _name
@@ -206,7 +206,6 @@ def get_stack_trace():
             _stack_frame_json["file"]["path"] = _function.symtab.fullname()
         else:
             _stack_frame_json["file"] = False
-
         backtrace_json.append(_stack_frame_json)
     return {"code": 200, "msg": "success", "data": {"trace": backtrace_json}}
 
